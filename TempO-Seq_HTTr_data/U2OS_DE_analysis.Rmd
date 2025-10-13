@@ -1,0 +1,224 @@
+
+This notebook will be used to perform differential expression analysis on the count data generated from the experiments from the study GSE274318. 
+
+```{r}
+rm(list=ls())
+
+suppressMessages({
+    library(readr)              # v2.1.5
+    library(DESeq2)             # v1.42.1
+    library(dplyr)              # v1.1.4
+    library(gtools)             # v3.9.5
+    library(BiocParallel)       # v1.36.0
+    library(tidyverse)          # v2.0.0
+    library(qs)                 # v0.27.3
+})                              # R v4.3.3 
+
+register(MulticoreParam(workers = 40))  
+```
+
+
+
+
+# METADATA 
+
+```{r}
+metadata <- readRDS("./other_files/Sample_key.rds")
+metadata <- metadata[metadata$qc_flag == "OK", ]
+
+keep_stypes <- c("test sample", "vehicle control")
+metadata <- metadata[metadata$stype %in% keep_stypes, ]
+```
+
+
+
+
+# COUNT DATA 
+
+```{r}
+count_data <-  as.data.frame(readRDS("./other_files/Probe_counts.rds"))
+rownames(count_data) <- count_data$X
+```
+
+```{r}
+probes   <- rownames(count_data)
+samples  <- colnames(count_data)
+metadata <- metadata[metadata$sample_id %in% samples, ]
+```
+
+
+
+
+# DE ANALYSIS
+
+```{r}
+all_plategroups <- mixedsort(unique(metadata$pg_id))
+all_results <- list()
+
+for (pg in all_plategroups) {
+    cat("Processing plate group:", pg, "\n")
+    
+    relevant_metadata   <- metadata[metadata$pg_id == pg, ]
+    count_matrix        <- as.matrix(count_data[, rownames(relevant_metadata)])
+    
+    common_samples <- intersect(colnames(count_matrix), relevant_metadata$sample_id)
+    if (length(common_samples) == 0) {
+        stop("No common samples found for plate group ", pg)
+    }
+    
+    relevant_metadata$plate_id   <- as.factor(relevant_metadata$plate_id)
+    relevant_metadata$dose_level <- as.factor(relevant_metadata$dose_level)
+    
+    stopifnot(all(relevant_metadata$sample_id == colnames(count_matrix)))
+    
+    samples <- unique(relevant_metadata$chem_id)
+    samples <- samples[!(samples %in% c("DMSO", "", NA))]
+    
+    sample_results <-  list()
+    
+    for (i in seq_along(samples)) {
+        sample <- samples[i]
+        cat("\n--> ", sample, " (", i, "/", length(samples), ")\n", sep = "")
+        
+        sub_relevant_metadata <- relevant_metadata[relevant_metadata$chem_id == sample | (relevant_metadata$stype == "vehicle control"), ]
+        sub_relevant_count_data <- count_matrix[, sub_relevant_metadata$sample_id, drop = FALSE]
+        
+        dds <- DESeqDataSetFromMatrix(countData = sub_relevant_count_data,
+                                      colData   = sub_relevant_metadata,
+                                      design    = ~ plate_id + dose_level)
+        
+        keep_genes <- rowMeans(counts(dds)) >= 5 # as in paper
+        dds <- dds[keep_genes, ]
+        
+        dds <- DESeq(dds, betaPrior = FALSE, parallel = TRUE)
+        
+        current_levels <- unique(sub_relevant_metadata$dose_level)
+        dose_levels <- setdiff(current_levels, "0")
+        
+        res_list <- bplapply(dose_levels, function(dose) {
+            
+            res <- suppressMessages(lfcShrink(dds, contrast = c("dose_level", dose, "0"), type = "ashr"))
+            res_df <- as.data.frame(res)
+            res_df$dose_level <- dose
+            res_df <- res_df %>%
+                rownames_to_column("probe_id") %>%
+                dplyr::mutate(Gene_Symbol = gsub("_[0-9]+$", "", probe_id))
+            res_df
+        })
+        
+        res_combined <- do.call(rbind, res_list)
+        res_combined$sample_id <- sample
+        res_combined$pg_id <- pg
+        
+        sample_results[[sample]] <- res_combined
+        
+    }
+    
+    all_results[[pg]] <- do.call(rbind, sample_results)
+    cat("\n")
+}
+```
+
+
+
+
+# AGGREGATING PROBES TO GENE LEVEL
+
+In the paper, they mention: "DESeq2 probe-level L2FC results for each test chemical were summarized as a matrix in which the rows and columns correspond to the treatment concentrations and probes, respectively. For each probe-level L2FC matrix, L2FC values were aggregated to the gene level by using the highest magnitude fold change for any associated probe in either direction."
+
+I will do the same to get gene-level results instead of probe-level 
+
+```{r}
+process_sample <- function(sample, plate, plategroup) {
+    library(gtools)
+    library(dplyr)
+    
+    sample_plate <- plate[plate$sample_id == sample, ]
+    dose_levels  <- mixedsort(unique(sample_plate$dose_level))
+    
+    sample_results <- list()
+    
+    for (dose in dose_levels) {
+        dose_plate <- sample_plate[sample_plate$dose_level == dose, ]
+        
+        res_df <- dose_plate %>%
+            dplyr::select(Gene_Symbol, 
+                          padj, 
+                          log2FoldChange) %>%
+            dplyr::mutate(abs_L2FC = abs(log2FoldChange)) %>%
+            dplyr::group_by(Gene_Symbol) %>%
+            dplyr::slice_max(order_by = abs_L2FC, 
+                             with_ties = FALSE) %>%
+            dplyr::ungroup() %>%
+            dplyr::mutate(sample_id = sample,
+                          plate_group = plategroup,
+                          dose_level = dose,
+                          sample_dose = paste0(sample, "_", dose),
+                          gene_symbol = Gene_Symbol, 
+                          log2foldchange = log2FoldChange) %>%
+            dplyr::select(sample_dose, 
+                          gene_symbol, 
+                          log2foldchange, 
+                          padj, 
+                          plate_group, 
+                          sample_id, 
+                          dose_level)
+        
+        sample_results[[dose]] <- res_df
+    }
+    
+    return(sample_results)
+}
+```
+
+```{r}
+aggregated_results_all <- list()
+plategroups <- seq_along(all_results)
+
+for (plategroup in plategroups) {
+    cat("Processing plate group:", plategroup, "\n")
+    
+    plate <- as.data.frame(all_results[[plategroup]])
+    samples <- unique(plate$sample_id)
+    
+    bp_param <- MulticoreParam(workers = 40)
+    
+    sample_results_list <- bplapply(samples, function(sample) {
+        process_sample(sample, plate, plategroup)
+    }, BPPARAM = bp_param)
+    
+    for (sample_result in sample_results_list) {
+        aggregated_results_all <- c(aggregated_results_all, sample_result)
+    }
+}
+```
+
+```{r}
+combined_long_df <- bind_rows(aggregated_results_all)
+
+log2_wide_paired <- as.data.frame(combined_long_df %>%
+                                      group_by(sample_dose) %>%
+                                      select(sample_dose, gene_symbol, log2foldchange) %>%
+                                      pivot_wider(names_from = gene_symbol, values_from = log2foldchange, names_prefix = "lfc_"))
+
+padj_wide_paired <- as.data.frame(combined_long_df %>%
+                                      select(sample_dose, gene_symbol, padj) %>%
+                                      pivot_wider(names_from = gene_symbol, values_from = padj, names_prefix = "padj_"))
+
+final_wide <- log2_wide_paired %>% 
+    left_join(padj_wide_paired, by = "sample_dose")
+
+final_wide
+```
+
+
+
+
+# SAVE 
+
+```{r}
+cell_name <- "U2OS"
+output_file <- paste0("./output/aggregated_results_", cell_name, ".feather")
+
+write_feather(final_wide, output_file)
+```
