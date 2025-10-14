@@ -19,9 +19,9 @@ import pandas as pd                                                 # v2.2.3
 from sqlalchemy import create_engine, text, bindparam, Integer      # v2.0.40
 
 # Configuration
-BASE_DIR = Path(__file__).resolve().parent
-OUTPUT_DIR = BASE_DIR / "extracted"
-AEIDS_CSV = BASE_DIR / "TOX21_aeids_all.csv"
+BASE_DIR = Path(__file__).resolve().parent.parent
+OUTPUT_DIR = BASE_DIR / "output"
+AEIDS_CSV = BASE_DIR / "input/TOX21_aeids_all.csv"
 
 TEMP_DIR = BASE_DIR / ".temp_processing"
 TEMP_01_DIR = TEMP_DIR / "01_pattern_filtered"
