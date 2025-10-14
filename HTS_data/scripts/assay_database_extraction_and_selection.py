@@ -24,8 +24,10 @@ OUTPUT_DIR = BASE_DIR / "output"
 AEIDS_CSV = BASE_DIR / "input/TOX21_aeids_all.csv"
 
 TEMP_DIR = BASE_DIR / ".temp_processing"
+TEMP_00_DIR = TEMP_DIR / "00_raw_extracts"
 TEMP_01_DIR = TEMP_DIR / "01_pattern_filtered"
 TEMP_02_DIR = TEMP_DIR / "02_viability_filtered"
+TEMP_03_DIR = TEMP_DIR / "03_class_balanced"
 
 # Fit category codes (high-confidence labels per InvitroDB v4.2 documentation)
 FITC_STRONG_ACTIVES: Iterable[int] = (41, 42, 37, 38)
@@ -121,7 +123,7 @@ def extract_database():
     Queries the database for each assay endpoint (aeid) and applies
     consensus hit-calling logic to resolve replicate measurements.
     """
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    TEMP_00_DIR.mkdir(parents=True, exist_ok=True)
 
     aeids = pd.read_csv(AEIDS_CSV, header=0)
 
@@ -138,7 +140,7 @@ def extract_database():
             aeid = int(row["aeid"])
             name = str(row["assay_component_endpoint_name"])
             safe_name = re.sub(r"[^A-Za-z0-9_\-]", "_", name)
-            out_path = OUTPUT_DIR / f"{safe_name}.csv"
+            out_path = TEMP_00_DIR / f"{safe_name}.csv"
 
             if out_path.exists():
                 skipped += 1
@@ -167,7 +169,7 @@ def filter_non_analytical_files():
     - Time-series data (_RT_): Incompatible with single-endpoint analysis
     - Autofluorescence (AutoFluor): Technical artifacts, not biological activity
     """
-    all_files = [f for f in os.listdir(OUTPUT_DIR) if f.endswith('.csv')]
+    all_files = [f for f in os.listdir(TEMP_00_DIR) if f.endswith('.csv')]
     
     excluded = [
         f for f in all_files 
@@ -180,7 +182,7 @@ def filter_non_analytical_files():
     TEMP_01_DIR.mkdir(parents=True, exist_ok=True)
     
     for f in included:
-        shutil.copy(OUTPUT_DIR / f, TEMP_01_DIR / f)
+        shutil.copy(TEMP_00_DIR / f, TEMP_01_DIR / f)
     
     print(f"Pattern filtering: {len(excluded)}/{len(all_files)} files excluded")
 
@@ -254,6 +256,8 @@ def filter_low_count_files():
     """
     all_files = [f for f in os.listdir(TEMP_02_DIR) if f.endswith('.csv')]
     
+    TEMP_03_DIR.mkdir(parents=True, exist_ok=True)
+    
     excluded = []
     
     for file in all_files:
@@ -264,18 +268,53 @@ def filter_low_count_files():
         
         if pos + neg == 0 or pos < MIN_CLASS_COUNT or neg < MIN_CLASS_COUNT:
             excluded.append(file)
+        else:
+            shutil.copy(TEMP_02_DIR / file, TEMP_03_DIR / file)
     
-    if OUTPUT_DIR.exists():
-        shutil.rmtree(OUTPUT_DIR)
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    
-    included = [f for f in all_files if f not in excluded]
-    
-    for file in included:
-        shutil.copy(TEMP_02_DIR / file, OUTPUT_DIR / file)
+    included_count = len(all_files) - len(excluded)
     
     print(f"Class balance filtering: {len(excluded)} assays excluded")
-    print(f"Final dataset: {len(included)} assays retained")
+    print(f"Final dataset: {included_count} assays retained")
+
+
+def merge_all_assays():
+    """
+    Merge all filtered assay files into a single CSV with dtxsid as rows
+    and assay names as columns, with hitc values as cell values.
+    """
+    all_files = [f for f in os.listdir(TEMP_03_DIR) if f.endswith('.csv')]
+    
+    if not all_files:
+        print("No assays to merge!")
+        return
+    
+    merged_dfs = []
+    
+    for file in all_files:
+        df = pd.read_csv(TEMP_03_DIR / file)
+        assay_name = file.replace('.csv', '')
+        df['assay_name'] = assay_name
+        # Keep only dtxsid, hitc, and assay_name columns
+        df = df[['dtxsid', 'hitc', 'assay_name']]
+        merged_dfs.append(df)
+    
+    # Concatenate all dataframes
+    combined_df = pd.concat(merged_dfs, ignore_index=True)
+    
+    # Pivot: dtxsid as rows, assay_name as columns, hitc as values
+    pivoted_df = combined_df.pivot_table(
+        index='dtxsid',
+        columns='assay_name',
+        values='hitc',
+        aggfunc='first'  # In case of duplicates, take the first value
+    )
+    
+    # Reset index to make dtxsid a regular column
+    pivoted_df.reset_index(inplace=True)
+    
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    output_path = OUTPUT_DIR / "all_assays_merged.csv"
+    pivoted_df.to_csv(output_path, index=False)
 
 
 def main():
@@ -283,6 +322,7 @@ def main():
     filter_non_analytical_files()
     apply_viability_filter()
     filter_low_count_files()
+    merge_all_assays()
     
     # cleanup
     if TEMP_DIR.exists():
