@@ -1,5 +1,5 @@
 
-This notebook will be used to perform differential expression analysis on the count data generated from the experiments from the study GSE211183.
+This notebook will be used to perform differential expression analysis on the count data generated from the experiments from the study GSE272548.
 
 ```{r}
 rm(list=ls())
@@ -12,8 +12,6 @@ suppressMessages({
     library(BiocParallel)       # v1.36.0
     library(tidyverse)          # v2.0.0
     library(qs)                 # v0.27.3
-    library(readxl)             # v1.4.5
-    library(stringr)            # v1.5.1
 })                              # R v4.3.3 
 
 register(MulticoreParam(workers = 40))  
@@ -25,10 +23,16 @@ register(MulticoreParam(workers = 40))
 # METADATA 
 
 ```{r}
-metadata <- suppressMessages(read_xlsx("./other_files/GSE284321_metadata.xlsx", skip = 67))
-metadata <- metadata[metadata$'dose level' != 'NA',]
-metadata <- metadata[metadata$'**cell line' != 'MCF-7', ]
-metadata$pg_id <- str_extract(metadata$`processed data file...25`, "(?<=pg)\\d+")
+metadata <- suppressMessages(read_csv("../input/metadata/File_S5_httr_mcf7_screen_qc_metrics.csv"))
+metadata <- metadata[metadata$qc_flag == "OK", ]
+
+exclude_stypes <- c("QC sample", "reference chemical", "untreated control")  
+metadata <- metadata[ ! metadata$stype %in% exclude_stypes, ]
+
+keep_stypes <- c("test sample", "vehicle control")
+metadata <- metadata[metadata$stype %in% keep_stypes, ]
+
+manifest <- suppressMessages(read_csv("../input/metadata/hWTv1_mcf7_probes.csv"))
 ```
 
 
@@ -37,7 +41,7 @@ metadata$pg_id <- str_extract(metadata$`processed data file...25`, "(?<=pg)\\d+"
 # COUNT DATA 
 
 ```{r}
-count_files <- list.files( "./count_files", pattern = "count_data.csv", full.names = TRUE)
+count_files <- list.files( "../input/count_data", pattern = "count_data.csv", full.names = TRUE)
 ```
 
 
@@ -67,21 +71,21 @@ for (pg in all_plategroups) {
     rownames(relevant_count_data) <- relevant_count_data[[1]]
     relevant_count_data <- as.matrix(relevant_count_data[,-1])
     
-    common_samples <- intersect(colnames(relevant_count_data), relevant_metadata$'*library name')
+    common_samples <- intersect(colnames(relevant_count_data), relevant_metadata$sample_id)
     if (length(common_samples) == 0) {
         stop("No common samples found for plate group ", pg)
     }
     
     count_matrix <- relevant_count_data[, common_samples, drop = FALSE]
-    relevant_metadata <- relevant_metadata[match(common_samples, relevant_metadata$'*library name'), ]
+    relevant_metadata <- relevant_metadata[match(common_samples, relevant_metadata$sample_id), ]
     
-    relevant_metadata$plate_id <- as.factor(relevant_metadata$'assay plate')
-    relevant_metadata$dose_level <- as.factor(relevant_metadata$'dose level')
+    relevant_metadata$plate_id   <- as.factor(relevant_metadata$plate_id)
+    relevant_metadata$dose_level <- as.factor(relevant_metadata$dose_level)
     
-    stopifnot(all(relevant_metadata$'*library name' == colnames(count_matrix)))
+    stopifnot(all(relevant_metadata$sample_id == colnames(count_matrix)))
     
-    samples <- unique(relevant_metadata$'chemical sample ID')
-    samples <- samples[!(samples %in% c("DMSO", "", "NA"))]
+    samples <- unique(relevant_metadata$epa_sample_id)
+    samples <- samples[!(samples %in% c("DMSO", "", NA))]
     
     sample_results <-  list()
     
@@ -89,8 +93,8 @@ for (pg in all_plategroups) {
         sample <- samples[i]
         cat("\n--> ", sample, " (", i, "/", length(samples), ")\n", sep = "")
         
-        sub_relevant_metadata <- relevant_metadata[relevant_metadata$'chemical sample ID' == sample | (relevant_metadata$treatment == "0.5% DMSO vehicle control"), ]
-        sub_relevant_count_data <- count_matrix[, sub_relevant_metadata$'*library name', drop = FALSE]
+        sub_relevant_metadata <- relevant_metadata[relevant_metadata$epa_sample_id == sample | (relevant_metadata$stype == "vehicle control"), ]
+        sub_relevant_count_data <- count_matrix[, sub_relevant_metadata$sample_id, drop = FALSE]
         
         dds <- DESeqDataSetFromMatrix(countData = sub_relevant_count_data,
                                       colData   = sub_relevant_metadata,
@@ -102,7 +106,7 @@ for (pg in all_plategroups) {
         dds <- DESeq(dds, betaPrior = FALSE, parallel = TRUE)
         
         current_levels <- unique(sub_relevant_metadata$dose_level)
-        dose_levels    <- setdiff(current_levels, "0")
+        dose_levels <- setdiff(current_levels, "0")
         
         res_list <- bplapply(dose_levels, function(dose) {
             
@@ -111,7 +115,8 @@ for (pg in all_plategroups) {
             res_df$dose_level <- dose
             res_df <- res_df %>%
                 rownames_to_column("probe_id") %>%
-                dplyr::mutate(Gene_Symbol = gsub("_[0-9]+$", "", probe_id))
+                dplyr::left_join(manifest[, c("Probe_Name", "Gene_Symbol", "Entrez_ID", "Probe_Flag")],   by = c("probe_id" = "Probe_Name")) %>%
+                dplyr::filter(Probe_Flag != "bad")
             res_df
         })
         
@@ -133,9 +138,8 @@ for (pg in all_plategroups) {
 
 # AGGREGATING PROBES TO GENE LEVEL
 
-In the paper, they mention: "DESeq2 probe-level L2FC results for each test chemical were summarized as a matrix in which the rows and columns correspond to the treatment concentrations and probes, respectively. For each probe-level L2FC matrix, L2FC values were aggregated to the gene level by using the highest magnitude fold change for any associated probe in either direction."
-
-I will do the same to get gene-level results instead of probe-level 
+In the paper, there was mentioned: "DESeq2 probe-level L2FC results for each test chemical were summarized as a matrix in which the rows and columns correspond to the treatment concentrations and probes, respectively. For each probe-level L2FC matrix, L2FC values were aggregated to the gene level by using the highest magnitude fold change for any associated probe in either direction."
+Here we will do the same to get gene-level results instead of probe-level.
 
 ```{r}
 process_sample <- function(sample, plate, plategroup) {
@@ -226,8 +230,8 @@ final_wide
 # SAVE 
 
 ```{r}
-cell_name <- "HepRG"
-output_file <- paste0("./output/aggregated_results_", cell_name, ".feather")
+cell_name <- "MCF7"
+output_file <- paste0("../output/aggregated_results_", cell_name, ".feather")
 
 write_feather(final_wide, output_file)
 ```
