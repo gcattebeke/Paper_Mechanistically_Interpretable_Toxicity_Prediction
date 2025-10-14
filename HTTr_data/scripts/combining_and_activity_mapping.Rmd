@@ -1,0 +1,303 @@
+
+```{r}
+rm(list=ls())
+
+suppressMessages({
+    library(readxl)             # v1.4.5
+    library(readr)
+    library(tidyverse)          # v2.0.0
+    library(gtools)
+    library(stringr)
+    library(arrow)              # v21.0.0.1
+    library(BiocParallel)
+    library(GSVA)
+    library(msigdbr)
+    library(decoupleR)
+    library(dorothea)
+    library(progeny)
+})                              # R v4.3.3 
+
+register(MulticoreParam(workers = 40))
+```
+
+
+
+
+# METADATA
+
+```{r}
+meta_mcf7 <- read_csv("../cell_lines/MCF7/other_files/File_S5_httr_mcf7_screen_qc_metrics.csv", show_col_types = FALSE) %>%
+    filter(!is.na(epa_sample_id)) %>%
+    filter(!is.na(dose_level)) %>%
+    filter(!str_detect(stype, regex("reference chemical", ignore_case = TRUE))) %>%
+    filter(!str_detect(stype, regex("vehicle control", ignore_case = TRUE))) %>%
+    mutate(dose_level = as.integer(dose_level)) %>%
+    relocate(dtxsid, .before = everything()) %>%
+    rename(outcome_id = dtxsid) %>%
+    mutate(
+        sample_dose_cell = paste0(as.character(epa_sample_id), "_", as.character(dose_level), "_MCF7"),
+        .after = 1
+    )
+
+MCF7_map <- setNames(meta_mcf7$outcome_id, meta_mcf7$sample_dose_cell)
+```
+
+```{r}
+chem_dict <- readRDS("../cell_lines/U2OS/other_files/Chemical_dictionary.rds")
+chem_dict_relevant <- chem_dict %>% select(chem_id, dtxsid)
+
+meta_u2os <- readRDS("../cell_lines/U2OS/other_files/Sample_key.rds") %>%
+    filter(!is.na(chem_id)) %>%
+    filter(!is.na(dose_level)) %>%
+    mutate(dose_level = as.integer(dose_level)) %>%
+    left_join(chem_dict_relevant, by = "chem_id") %>%
+    rename(outcome_id = dtxsid) %>%
+    relocate(outcome_id, .before = everything()) %>%
+    mutate(
+        sample_dose_cell = paste0(as.character(chem_id), "_", as.character(dose_level), "_U2OS"),
+        .after = 1
+    )
+
+U2OS_map <- setNames(meta_u2os$outcome_id, meta_u2os$sample_dose_cell)
+```
+
+```{r}
+# there was no dtxsid present or chemical dictionary file, so I made a map via the invitrodb
+chem_dict <- read_csv("./chemical_dtxsid_map.csv", show_col_types = FALSE)
+chem_dict_relevant <- chem_dict %>%
+  select(chnm, dsstox_substance_id) %>%
+  mutate(chnm = as.character(chnm))
+
+meta_heprg <- read_excel("../cell_lines/HepRG/other_files/GSE284321_metadata.xlsx", skip = 67) %>%
+  filter( !(`chemical sample ID` %in% c(NA, "", "NA")), !(`dose level` %in% c(NA, "", "NA"))) %>%
+  mutate(
+    dose_level = parse_number(`dose level`),
+    `chemical name` = as.character(`chemical name`)
+  ) %>%
+  left_join(
+    chem_dict_relevant,
+    by = c("chemical name" = "chnm"),
+    keep = TRUE
+  )
+
+missing_names <- meta_heprg %>%
+  filter(is.na(dsstox_substance_id)) %>%
+  pull(`chemical name`) %>%
+  unique() 
+
+# there were 88 missing names, presumably because of small differences in the chemical names
+# I copied the output and did a batch search via https://comptox.epa.gov/dashboard/batch-search
+
+second_chem_dict <- read_csv("./CCD-Batch-Search_2025-05-19_08_42_02.csv", show_col_types = FALSE) %>%
+  select(INPUT, DTXSID) %>%
+  rename(
+    `chemical name` = INPUT,
+    dsstox_substance_id_y = DTXSID
+  )
+
+meta_heprg <- meta_heprg %>%
+  rename(dsstox_substance_id_x = dsstox_substance_id) %>%
+  left_join(second_chem_dict, by = "chemical name") %>%
+  mutate(
+    outcome_id = coalesce(dsstox_substance_id_x, dsstox_substance_id_y),
+    sample_dose_cell = paste0(as.character(`chemical sample ID`), "_", as.character(dose_level), "_HepRG")
+  )
+
+HepRG_map <- setNames(meta_heprg$outcome_id, meta_heprg$sample_dose_cell)
+```
+
+```{r}
+combined_map <- c(MCF7_map, U2OS_map, HepRG_map)
+combined_map_df <- as.data.frame(combined_map)
+
+write_csv(combined_map_df, "./combined_cells_map.csv")
+```
+
+
+
+
+# MERGING
+
+```{r}
+input_files <- list.files(
+    path = "..",
+    pattern = "^aggregated_results_.*\\.feather$",
+    recursive = TRUE,
+    full.names = TRUE
+)
+
+all_dfs <- list()
+for (file in input_files) {
+  fname <- basename(file)
+  cell_type <- sub("\\.feather$", "", fname)
+  cell_type <- sub("^.*_", "", cell_type)
+  
+  df <- read_feather(file) %>% as_tibble()
+  
+  split_cols <- tidyr::separate_wider_delim(
+    df %>% select(sample_dose),
+    cols = sample_dose,
+    delim = "_",
+    names = c("epa_sample_id", "dose_level"),
+    too_few = "align_start",
+    too_many = "merge"
+  )
+  
+  df <- df %>%
+    mutate(
+      cell_type = cell_type,
+      .after = 1
+    ) %>%
+    bind_cols(split_cols) %>%
+    mutate(
+      sample_dose_cell = paste0(as.character(epa_sample_id), "_", as.character(dose_level), "_", cell_type),
+      .after = 4
+    ) %>%
+    select(-sample_dose)
+  
+  all_dfs[[length(all_dfs) + 1]] <- df
+}
+
+merged_data <- bind_rows(all_dfs)
+
+merged_data_annotated <- merged_data %>%
+  mutate(outcome_id = unname(combined_map[sample_dose_cell]),
+         .after = 4)
+
+# save 
+#write_feather(merged_data_annotated, "./merged_annotated_results.feather")
+```
+
+
+
+
+# ACTIVITY MAPPING
+
+```{r}
+gene_cols  <- grep("^lfc_", names(merged_data_annotated), value = TRUE)
+gene_names <- str_remove(gene_cols, "^lfc_")
+
+merged_data_annotated$sample_dose_cell_outcomeID <- paste0(merged_data_annotated$sample_dose_cell, "_", merged_data_annotated$outcome_id)
+lfc_long <- merged_data_annotated %>%
+    select(all_of(gene_cols), sample_dose_cell_outcomeID) %>%
+    as.data.frame()
+rownames(lfc_long) <- merged_data_annotated$sample_dose_cell_outcomeID
+lfc_long <- lfc_long[, gene_cols, drop = FALSE]
+colnames(lfc_long) <- gene_names
+
+mat <- t(as.matrix(lfc_long))
+storage.mode(mat) <- "numeric"
+non_na_frac <- rowMeans(is.finite(mat))
+mat <- mat[non_na_frac >= 0.95, , drop = FALSE]
+mat[!is.finite(mat)] <- NA
+mat[is.na(mat)] <- 0
+
+split_condition <- function(x) {
+    x %>%
+        separate(col = condition,
+                 into = c("epa_sample_id","dose_level","cell_type","outcome_id"),
+                 sep = "_", remove = FALSE, extra = "merge") %>%
+        mutate(sample_dose_cell = paste0(epa_sample_id, "_", dose_level, "_", cell_type)) %>%
+        select(epa_sample_id, dose_level, cell_type, outcome_id, sample_dose_cell, everything(), -condition)
+}
+```
+
+```{r}
+# MSigDB H + C2 (ssGSEA NES)
+
+msig_h <- msigdbr(species = "Homo sapiens", collection = "H") %>%
+    select(gs_name, gene_symbol) %>% distinct()
+msig_c2 <- msigdbr(species = "Homo sapiens", collection = "C2") %>%
+    select(gs_name, gene_symbol) %>% distinct()
+gs_tbl <- bind_rows(msig_h, msig_c2)
+genesets <- split(gs_tbl$gene_symbol, gs_tbl$gs_name)
+genesets <- lapply(genesets, function(g) intersect(rownames(mat), unique(g)))
+genesets <- genesets[sapply(genesets, length) >= 5]
+
+nes <- gsva(mat, genesets, method = "ssgsea", ssgsea.norm = TRUE, parallel.sz = 40)
+
+sig_names <- rownames(nes)
+up_idx <- grepl("_UP$", sig_names, ignore.case = TRUE)
+dn_idx <- grepl("_DN$", sig_names, ignore.case = TRUE)
+base_up <- str_replace(sig_names[up_idx], "_UP$", "")
+base_dn <- str_replace(sig_names[dn_idx], "_DN$", "")
+common  <- intersect(base_up, base_dn)
+
+if (length(common) > 0) {
+    keep_rows <- setdiff(sig_names, c(paste0(common, "_UP"), paste0(common, "_DN")))
+    nes_keep  <- nes[keep_rows, , drop = FALSE]
+
+    comb_list <- lapply(common, function(b) {
+        nes[paste0(b, "_UP"), , drop = FALSE] - nes[paste0(b, "_DN"), , drop = FALSE]
+    })
+    comb_mat <- do.call(rbind, comb_list)
+    rownames(comb_mat) <- common
+
+    collide <- rownames(comb_mat) %in% rownames(nes_keep)
+    if (any(collide)) {
+        rownames(comb_mat)[collide] <- paste0(rownames(comb_mat)[collide], "_UPminusDN")
+    }
+
+    nes <- rbind(nes_keep, comb_mat)
+}
+
+sig_msigdb <- as.data.frame(t(nes))
+colnames(sig_msigdb) <- make.names(colnames(sig_msigdb), unique = TRUE)
+
+sig_msigdb$condition <- rownames(sig_msigdb)
+sig_msigdb <- split_condition(sig_msigdb)
+```
+
+```{r}
+# DoRothEA TF activity (decoupleR consensus) 
+data(dorothea_hs, package = "dorothea")
+
+reg_net <- dorothea_hs %>%
+    dplyr::filter(confidence %in% c("A","B","C")) %>%
+    dplyr::transmute(source = tf, target = target, mor = mor, weight = 1)
+
+dorot <- decouple(
+    mat = mat,
+    network = reg_net,
+    .source = "source",
+    .target = "target",
+    statistics = c("ulm","mlm","wsum"),
+    minsize = 5
+)
+
+dorot_cons <- run_consensus(dorot)
+
+sig_dorothea <- dorot_cons %>%
+    dplyr::select(source, condition, score) %>%
+    tidyr::pivot_wider(names_from = source, values_from = score) %>%
+    as.data.frame()
+
+sig_dorothea <- split_condition(sig_dorothea)
+```
+
+```{r}
+# PROGENy pathway activity
+prog <- progeny(mat, scale = TRUE, organism = "Human", top = 5000, z_scores = TRUE, verbose = FALSE)
+if (ncol(prog) == ncol(mat)) {
+    colnames(prog) <- colnames(mat)
+    sig_progeny <- as.data.frame(t(prog))
+} else {
+    rownames(prog) <- colnames(mat)
+    sig_progeny <- as.data.frame(prog)
+}
+sig_progeny$condition <- rownames(sig_progeny)
+sig_progeny <- split_condition(sig_progeny)
+```
+
+
+
+
+# JOIN ALL AND SAVE 
+
+```{r}
+keys <- c("epa_sample_id","dose_level","cell_type","outcome_id","sample_dose_cell")
+sig_all_joined <- reduce(list(sig_msigdb, sig_dorothea, sig_progeny), function(x, y) full_join(x, y, by = keys))
+
+# save
+write_feather(sig_all_joined, "./signature_scores_all_databases.feather")
+```
