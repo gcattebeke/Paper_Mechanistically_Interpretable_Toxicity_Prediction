@@ -164,10 +164,6 @@ def extract_database():
 def filter_non_analytical_files():
     """    
     Removes files that are not suitable for endpoint analysis:
-    - Channel-specific data (ch1, ch2): Only ratio files provide normalized data
-    - Follow-up assays: Limited chemical coverage, specialized test conditions
-    - Time-series data (_RT_): Incompatible with single-endpoint analysis
-    - Autofluorescence (AutoFluor): Technical artifacts, not biological activity
     """
     all_files = [f for f in os.listdir(TEMP_00_DIR) if f.endswith('.csv')]
     
@@ -251,8 +247,6 @@ def apply_viability_filter():
 def filter_low_count_files():
     """
     Filter out assays with insufficient class balance:
-    - At least MIN_CLASS_COUNT positive samples (hitc = 1)
-    - At least MIN_CLASS_COUNT negative samples (hitc = 0)
     """
     all_files = [f for f in os.listdir(TEMP_02_DIR) if f.endswith('.csv')]
     
