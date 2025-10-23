@@ -288,22 +288,18 @@ def merge_all_assays():
         df = pd.read_csv(TEMP_03_DIR / file)
         assay_name = file.replace('.csv', '')
         df['assay_name'] = assay_name
-        # Keep only dtxsid, hitc, and assay_name columns
         df = df[['dtxsid', 'hitc', 'assay_name']]
         merged_dfs.append(df)
     
-    # Concatenate all dataframes
     combined_df = pd.concat(merged_dfs, ignore_index=True)
     
-    # Pivot: dtxsid as rows, assay_name as columns, hitc as values
     pivoted_df = combined_df.pivot_table(
         index='dtxsid',
         columns='assay_name',
         values='hitc',
-        aggfunc='first'  # In case of duplicates, take the first value
+        aggfunc='first'
     )
     
-    # Reset index to make dtxsid a regular column
     pivoted_df.reset_index(inplace=True)
     
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
