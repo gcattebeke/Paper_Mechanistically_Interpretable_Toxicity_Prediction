@@ -1,5 +1,3 @@
-# Toxicogenomics Data Analysis Pipeline
-
 This repository contains the complete data analysis pipeline and supplementary materials for the toxicogenomics research paper. The repository integrates high-throughput screening (HTS) data from ToxCast/Tox21 assays with high-throughput transcriptomics (HTTr) data to create a comprehensive toxicological dataset suitable for machine learning applications.
 
 ## Repository Structure

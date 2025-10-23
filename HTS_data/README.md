@@ -1,43 +1,26 @@
 # High-Throughput Screening (HTS) Data
 
-This directory contains the pipeline for extracting, filtering, and processing high-throughput screening data from the EPA's ToxCast/Tox21 programs via InvitroDB v4.2.
+This directory contains the steps for extracting, filtering, and processing high-throughput screening data from the EPA's ToxCast/Tox21 programs via InvitroDB v4.2. Instructions and downloads to set up a local MySQL instance of InvitroDB, along with release notes, assay descriptions, summary files, and concentration–response plots, are available via EPA’s ToxCast data portal and the invitrodb v4.2 release space. 
 
-## Directory Structure
+The HTS data pipeline extracts bioactivity data from InvitroDB v4.2 and applies rigorous quality control filters to ensure high-quality datasets suitable for machine learning applications. The pipeline focuses on binary hit/no-hit classifications with high confidence labels.
+
+`input/TOX21_aeids_all.csv` contains the list of assay endpoint IDs (aeids) to be processed. The processing pipeline extracts data for these assays, applies multiple filtering steps, and outputs a final chemical-assay activity matrix in `output/all_assays_merged.csv`.
+
+<br> 
+
+### Directory Structure
 
 ```
 HTS_data/
 ├── input/
-│   └── TOX21_aeids_all.csv          # List of assay endpoint IDs (aeids) to process
+│   └── TOX21_aeids_all.csv          # list of assay endpoint IDs (aeid) to process
 ├── output/
-│   └── all_assays_merged.csv         # Final chemical-assay activity matrix
+│   └── all_assays_merged.csv        # chemical-assay activity matrix after filtering
 └── scripts/
-    └── assay_database_extraction_and_selection.py  # Main processing pipeline
+    └── assay_database_extraction_and_selection.py  # processing pipeline
 ```
 
-## Overview
-
-The HTS data pipeline extracts bioactivity data from InvitroDB v4.2 and applies rigorous quality control filters to ensure high-quality datasets suitable for machine learning applications. The pipeline focuses on binary hit/no-hit classifications with high confidence labels.
-
-## Input Files
-
-### `input/TOX21_aeids_all.csv`
-CSV file containing assay endpoint identifiers (aeids) and names to be extracted from InvitroDB. This file is stored using Git LFS due to its size.
-
-**Format**:
-- `aeid`: Assay endpoint ID (integer)
-- `assay_component_endpoint_name`: Human-readable assay name (string)
-
-## Output Files
-
-### `output/all_assays_merged.csv`
-Final processed dataset containing binary activity calls for chemicals across all filtered assays.
-
-**Format**:
-- Rows: Chemical identifiers (dtxsid)
-- Columns: Assay names
-- Values: Binary activity (0 = inactive, 1 = active)
-
-**Dimensions**: ~10,000 chemicals × ~100 assays (depending on filtering criteria)
+<br> 
 
 ## Pipeline Description
 

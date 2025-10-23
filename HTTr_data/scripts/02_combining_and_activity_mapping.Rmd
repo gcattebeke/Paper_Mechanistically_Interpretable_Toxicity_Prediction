@@ -198,7 +198,6 @@ split_condition <- function(x) {
 
 ```{r}
 # MSigDB H + C2 (ssGSEA NES)
-
 msig_h <- msigdbr(species = "Homo sapiens", collection = "H") %>%
     select(gs_name, gene_symbol) %>% distinct()
 msig_c2 <- msigdbr(species = "Homo sapiens", collection = "C2") %>%
