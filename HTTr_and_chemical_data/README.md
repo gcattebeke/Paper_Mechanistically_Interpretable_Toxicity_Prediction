@@ -2,6 +2,8 @@
 
 This directory contains the complete pipeline for processing high-throughput transcriptomics data from three cell lines (MCF-7, U2OS, and HepRG), including differential expression analysis, pathway enrichment, and integration with chemical structures and HTS assay data.
 
+<br> 
+
 ## Directory Structure
 
 ```
@@ -35,21 +37,21 @@ HTTr_data/
 
 The HTTr data processing pipeline consists of three main stages:
 
-### Stage 1: Differential Expression Analysis (Scripts 01a-01c)
+1. **Differential Expression Analysis (Scripts 01a-01c)**
 Process raw count data for each cell line independently:
 - Quality control filtering
 - DESeq2 differential expression analysis
 - Probe-to-gene aggregation
 - Dose-response profiling
 
-### Stage 2: Activity Mapping (Script 02)
+2. **Activity Mapping (Script 02)**
 Combine results and compute biological signatures:
 - Merge data from all three cell lines
 - Calculate pathway activities (PROGENy)
 - Calculate transcription factor activities (DoRothEA)
 - Calculate gene set enrichment scores (MSigDB H + C2)
 
-### Stage 3: Chemical Integration (Script 03)
+3. **Chemical Integration (Script 03)**
 Integrate with chemical structures and HTS data:
 - Generate chemical fingerprints (MACCS keys)
 - Merge HTTr signatures with HTS assay data
