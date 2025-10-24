@@ -23,7 +23,7 @@ register(MulticoreParam(workers = 40))
 # METADATA 
 
 ```{r}
-metadata <- readRDS("../input/metadata/Sample_key.rds")
+metadata <- readRDS("../data/HTTr/metadata/Sample_key.rds")
 metadata <- metadata[metadata$qc_flag == "OK", ]
 
 keep_stypes <- c("test sample", "vehicle control")
@@ -36,7 +36,7 @@ metadata <- metadata[metadata$stype %in% keep_stypes, ]
 # COUNT DATA 
 
 ```{r}
-count_data <-  as.data.frame(readRDS("../input/count_data/Probe_counts.rds"))
+count_data <-  as.data.frame(readRDS("../data/HTTr/count_data/Probe_counts.rds"))
 rownames(count_data) <- count_data$X
 ```
 
@@ -217,7 +217,7 @@ final_wide
 
 ```{r}
 cell_name <- "U2OS"
-output_file <- paste0("../output/aggregated_results_", cell_name, ".feather")
+output_file <- paste0("../data/HTTr/aggregated_results_", cell_name, ".feather")
 
 write_feather(final_wide, output_file)
 ```

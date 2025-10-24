@@ -23,7 +23,7 @@ register(MulticoreParam(workers = 40))
 # METADATA 
 
 ```{r}
-metadata <- suppressMessages(read_csv("../input/metadata/File_S5_httr_mcf7_screen_qc_metrics.csv"))
+metadata <- suppressMessages(read_csv("../data/HTTr/metadata/File_S5_httr_mcf7_screen_qc_metrics.csv"))
 metadata <- metadata[metadata$qc_flag == "OK", ]
 
 exclude_stypes <- c("QC sample", "reference chemical", "untreated control")  
@@ -32,7 +32,7 @@ metadata <- metadata[ ! metadata$stype %in% exclude_stypes, ]
 keep_stypes <- c("test sample", "vehicle control")
 metadata <- metadata[metadata$stype %in% keep_stypes, ]
 
-manifest <- suppressMessages(read_csv("../input/metadata/hWTv1_mcf7_probes.csv"))
+manifest <- suppressMessages(read_csv("../data/HTTr/metadata/hWTv1_mcf7_probes.csv"))
 ```
 
 
@@ -41,7 +41,7 @@ manifest <- suppressMessages(read_csv("../input/metadata/hWTv1_mcf7_probes.csv")
 # COUNT DATA 
 
 ```{r}
-count_files <- list.files( "../input/count_data", pattern = "count_data.csv", full.names = TRUE)
+count_files <- list.files( "../data/HTTr/count_data/MCF7", pattern = "count_data.csv", full.names = TRUE)
 ```
 
 
@@ -231,7 +231,7 @@ final_wide
 
 ```{r}
 cell_name <- "MCF7"
-output_file <- paste0("../output/aggregated_results_", cell_name, ".feather")
+output_file <- paste0("../data/HTTr/aggregated_results_", cell_name, ".feather")
 
 write_feather(final_wide, output_file)
 ```

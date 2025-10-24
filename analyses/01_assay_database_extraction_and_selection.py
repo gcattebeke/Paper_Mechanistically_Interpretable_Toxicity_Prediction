@@ -20,8 +20,8 @@ from sqlalchemy import create_engine, text, bindparam, Integer      # v2.0.40
 
 # Configuration
 BASE_DIR = Path(__file__).resolve().parent.parent
-OUTPUT_DIR = BASE_DIR / "output"
-AEIDS_CSV = BASE_DIR / "input/TOX21_aeids_all.csv"
+OUTPUT_DIR = BASE_DIR / "data" / "HTS"
+AEIDS_CSV = BASE_DIR / "data" / "HTS" / "TOX21_aeids_all.csv"
 
 TEMP_DIR = BASE_DIR / ".temp_processing"
 TEMP_00_DIR = TEMP_DIR / "00_raw_extracts"

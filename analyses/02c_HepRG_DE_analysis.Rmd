@@ -25,7 +25,7 @@ register(MulticoreParam(workers = 40))
 # METADATA 
 
 ```{r}
-metadata <- suppressMessages(read_xlsx("../input/metadata/GSE284321_metadata.xlsx", skip = 67))
+metadata <- suppressMessages(read_xlsx("../data/HTTr/metadata/GSE284321_metadata.xlsx", skip = 67))
 metadata <- metadata[metadata$'dose level' != 'NA',]
 metadata <- metadata[metadata$'**cell line' != 'MCF-7', ]
 metadata$pg_id <- str_extract(metadata$`processed data file...25`, "(?<=pg)\\d+")
@@ -37,7 +37,7 @@ metadata$pg_id <- str_extract(metadata$`processed data file...25`, "(?<=pg)\\d+"
 # COUNT DATA 
 
 ```{r}
-count_files <- list.files( "../input/count_data", pattern = "count_data.csv", full.names = TRUE)
+count_files <- list.files( "../data/HTTr/count_data", pattern = "count_data.csv", full.names = TRUE)
 ```
 
 
@@ -226,7 +226,7 @@ final_wide
 
 ```{r}
 cell_name <- "HepRG"
-output_file <- paste0("../output/aggregated_results_", cell_name, ".feather")
+output_file <- paste0("../data/HTTr/aggregated_results_", cell_name, ".feather")
 
 write_feather(final_wide, output_file)
 ```
