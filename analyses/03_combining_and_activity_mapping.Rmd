@@ -118,7 +118,7 @@ combined_map <- c(MCF7_map, U2OS_map, HepRG_map)
 ```{r}
 input_files <- list.files(
     path = "../data/HTTr",
-    pattern = "^aggregated_results_.*\\.feather$",
+    pattern = "^aggregated_results_.*\\.feather$", # these files will not be available on github due to size limits
     recursive = TRUE,
     full.names = TRUE
 )

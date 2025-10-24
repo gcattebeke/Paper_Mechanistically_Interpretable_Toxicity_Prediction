@@ -41,6 +41,8 @@ manifest <- suppressMessages(read_csv("../data/HTTr/metadata/hWTv1_mcf7_probes.c
 # COUNT DATA 
 
 ```{r}
+# to re-analyze the reads, put the raw count files in the folder below
+# count files can be found at https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE272548
 count_files <- list.files( "../data/HTTr/count_data/MCF7", pattern = "count_data.csv", full.names = TRUE)
 ```
 
@@ -232,6 +234,7 @@ final_wide
 ```{r}
 cell_name <- "MCF7"
 output_file <- paste0("../data/HTTr/aggregated_results_", cell_name, ".feather")
+# due to file size limits, this file will not be available on github
 
 write_feather(final_wide, output_file)
 ```

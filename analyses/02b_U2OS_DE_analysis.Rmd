@@ -36,6 +36,8 @@ metadata <- metadata[metadata$stype %in% keep_stypes, ]
 # COUNT DATA 
 
 ```{r}
+# to re-analyze the reads, put the raw count files in the folder below
+# count files can be found at https://clowder.edap-cluster.com/files/6595a852e4b063812d5c77ef?dataset=61147fefe4b0856fdc65639b&space=&folder=65959df8e4b063812d5c7706
 count_data <-  as.data.frame(readRDS("../data/HTTr/count_data/U2OS/Probe_counts.rds"))
 rownames(count_data) <- count_data$X
 ```
@@ -218,6 +220,7 @@ final_wide
 ```{r}
 cell_name <- "U2OS"
 output_file <- paste0("../data/HTTr/aggregated_results_", cell_name, ".feather")
+# due to file size limits, this file will not be available on github
 
 write_feather(final_wide, output_file)
 ```

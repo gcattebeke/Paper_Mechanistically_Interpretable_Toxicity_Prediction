@@ -37,6 +37,8 @@ metadata$pg_id <- str_extract(metadata$`processed data file...25`, "(?<=pg)\\d+"
 # COUNT DATA 
 
 ```{r}
+# to re-analyze the reads, put the raw count files in the folder below
+# count files can be found at https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE284321
 count_files <- list.files( "../data/HTTr/HepRG/count_data", pattern = "count_data.csv", full.names = TRUE)
 ```
 
@@ -227,6 +229,7 @@ final_wide
 ```{r}
 cell_name <- "HepRG"
 output_file <- paste0("../data/HTTr/aggregated_results_", cell_name, ".feather")
+# due to file size limits, this file will not be available on github
 
 write_feather(final_wide, output_file)
 ```
