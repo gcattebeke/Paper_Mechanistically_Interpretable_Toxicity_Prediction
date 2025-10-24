@@ -37,7 +37,7 @@ metadata$pg_id <- str_extract(metadata$`processed data file...25`, "(?<=pg)\\d+"
 # COUNT DATA 
 
 ```{r}
-count_files <- list.files( "../data/HTTr/count_data", pattern = "count_data.csv", full.names = TRUE)
+count_files <- list.files( "../data/HTTr/HepRG/count_data", pattern = "count_data.csv", full.names = TRUE)
 ```
 
 

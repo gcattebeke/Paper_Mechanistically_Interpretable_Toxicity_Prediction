@@ -36,7 +36,7 @@ metadata <- metadata[metadata$stype %in% keep_stypes, ]
 # COUNT DATA 
 
 ```{r}
-count_data <-  as.data.frame(readRDS("../data/HTTr/count_data/Probe_counts.rds"))
+count_data <-  as.data.frame(readRDS("../data/HTTr/count_data/U2OS/Probe_counts.rds"))
 rownames(count_data) <- count_data$X
 ```
 
