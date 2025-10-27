@@ -1,0 +1,17 @@
+
+================================================================================
+Processing assay 33/41: TOX21_SHH_3T3_GLI3_LUC_Antagonist
+================================================================================
+
+Target: TOX21_SHH_3T3_GLI3_LUC_Antagonist
+Samples: 2,131 | Positives: 444 | Negatives: 1,687
+
+[Fold 1/3] Boruta:  69 | ROC: 0.862 | PR-AUC: 0.630 | AP: 0.632 | F1: 0.622 | CM: [542,52;43,78]
+[Fold 2/3] Boruta:  89 | ROC: 0.839 | PR-AUC: 0.680 | AP: 0.681 | F1: 0.637 | CM: [481,48;58,93]
+[Fold 3/3] Boruta:  62 | ROC: 0.876 | PR-AUC: 0.716 | AP: 0.717 | F1: 0.697 | CM: [495,69;43,129]
+
+OOF Results:
+ROC-AUC: 0.857 | PR-AUC: 0.669 | Accuracy: 0.833 | F1: 0.642
+Confusion Matrix: [[1456, 231], [125, 319]]
+Global Threshold: 0.3487
+

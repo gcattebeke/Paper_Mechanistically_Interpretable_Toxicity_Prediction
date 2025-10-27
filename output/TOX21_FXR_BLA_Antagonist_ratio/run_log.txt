@@ -1,0 +1,17 @@
+
+================================================================================
+Processing assay 21/41: TOX21_FXR_BLA_Antagonist_ratio
+================================================================================
+
+Target: TOX21_FXR_BLA_Antagonist_ratio
+Samples: 2,438 | Positives: 226 | Negatives: 2,212
+
+[Fold 1/3] Boruta:  79 | ROC: 0.906 | PR-AUC: 0.592 | AP: 0.595 | F1: 0.594 | CM: [712,25;38,46]
+[Fold 2/3] Boruta:  84 | ROC: 0.913 | PR-AUC: 0.540 | AP: 0.543 | F1: 0.551 | CM: [724,29;28,35]
+[Fold 3/3] Boruta:  79 | ROC: 0.918 | PR-AUC: 0.629 | AP: 0.632 | F1: 0.623 | CM: [653,69;12,67]
+
+OOF Results:
+ROC-AUC: 0.905 | PR-AUC: 0.575 | Accuracy: 0.921 | F1: 0.562
+Confusion Matrix: [[2121, 91], [102, 124]]
+Global Threshold: 0.4820
+
