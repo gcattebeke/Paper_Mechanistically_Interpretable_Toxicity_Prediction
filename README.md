@@ -39,7 +39,7 @@ toxicogenomics_paper/
 │   │       ├── shap_global_rank_oof.csv       # Global feature ranking
 │   │       ├── shap_rank_all_folds.csv        # Feature ranking aggregated across folds
 │   │       ├── shap_summary_by_fold.csv       # Summary statistics per fold
-│   │       ├── shap_TOX21_PR_BLA_Antagonist_ratio.png     # when applicable: SHAP violin plot paper figure
+│   │       ├── shap_TOX21_PR_BLA_Antagonist_ratio.png     # Paper figure
 │   │       └── per_fold/                      # Individual fold SHAP results
 │   │           ├── shap_test_fold_1.feather
 │   │           ├── shap_rank_fold_1.csv
@@ -50,3 +50,5 @@ toxicogenomics_paper/
 │   └── table_01_performance_table_paper.csv                # Paper table
 └── extra/
 ```
+
+
