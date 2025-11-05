@@ -1,5 +1,7 @@
 # Mechanistically Interpretable Toxicity Prediction Through Multimodal Integration of Structure and Transcriptomics
 
+Supporting Information
+
 ![Workflow Overview](extra/overview_machine_learning_framework.png)
 
 <br>
