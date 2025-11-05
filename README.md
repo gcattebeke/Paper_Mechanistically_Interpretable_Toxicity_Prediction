@@ -2,6 +2,8 @@
 
 Supporting Information
 
+<br>
+
 ![Workflow Overview](extra/overview_machine_learning_framework.png)
 
 <br>
