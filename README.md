@@ -1,6 +1,6 @@
 # Mechanistically Interpretable Toxicity Prediction Through Multimodal Integration of Structure and Transcriptomics
 
-Supporting Information
+Supporting Information for https://doi.org/10.1101/2025.11.14.686754
 
 <br>
 
