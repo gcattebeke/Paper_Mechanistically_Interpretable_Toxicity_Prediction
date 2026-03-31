@@ -1,3 +1,0 @@
-Fold 1: ok | n_features=191 | bg_rows=1553
-Fold 2: ok | n_features=186 | bg_rows=1566
-Fold 3: ok | n_features=210 | bg_rows=1545
