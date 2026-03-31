@@ -6,6 +6,9 @@
 
 Supporting Information for DOI
 
+<br>
+
+
 ## Overview
 
 This repository contains the complete computational pipeline for predicting chemical toxicity endpoints by integrating molecular structure fingerprints and dose-dependent transcriptomic signatures. The approach combines high-throughput transcriptomics (HTTr) data from three human cell lines (MCF7, U2OS, HepaRG) with chemical structure information (MACCS fingerprints) to train interpretable machine learning models for 41 curated Tox21 assay endpoints.
