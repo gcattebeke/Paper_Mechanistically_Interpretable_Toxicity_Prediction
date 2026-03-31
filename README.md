@@ -18,7 +18,7 @@ All analyses are included in the `analyses/` directory, with scripts and noteboo
 
 ## Repository Structure
 ```
-toxicogenomics_paper/
+.
 ├── analyses/               
 │   ├── 01_assay_database_extraction_and_selection.py
 │   ├── 02a_MCF7_DE_analysis.Rmd
@@ -28,33 +28,43 @@ toxicogenomics_paper/
 │   ├── 04_chemical_intergration_and_data_aggregation.ipynb
 │   ├── 05_modelling_and_evaluation.py
 │   └── 06_results_analyses.ipynb
-├── data/                  
+├── data/
+│   ├── chemical_httr_assay_aggregated.feather
 │   ├── HTS/               # High-throughput screening assay data
 │   ├── HTTr/              # Transcriptomic data and metadata
 │   └── chemical/          # Chemical structure and fingerprint data
 ├── output/              
-│   ├── TOX21_PR_BLA_Antagonist_ratio/   # Example assay output directory
-│   │   ├── run_summary.json                # Aggregated CV metrics
-│   │   ├── run_log.txt                     # Execution log with timestamps
-│   │   ├── fold_details.csv                # Per-fold performance breakdown
-│   │   ├── oof_predictions.csv             # Out-of-fold predictions
-│   │   ├── feature_importance_summary.csv  # XGBoost feature importances
-│   │   ├── feature_ranking.csv             # Boruta selection frequencies
-│   │   └── shap/                           # SHAP interpretability outputs
+│   ├── figures_and_tables/                  # Directory containing all figures and tables
+│   │   ├── figure_01_feature_reduction_waterfall.png
+│   │   ├── figure_02_assay_performance_metrics_panel.png
+│   │   ├── figure_03_SHAP_plot_PR_antagonist.png
+│   │   ├── table_01_performance_table_paper.csv
+│   │   └── ...                              # Other supplementary figures and tables
+│   ├── TOX21_PR_BLA_Antagonist_ratio/       # Example assay output directory
+│   │   ├── run_summary.json                 # Aggregated CV metrics
+│   │   ├── run_log.txt                      # Execution log with timestamps
+│   │   ├── fold_details.csv                 # Per-fold performance breakdown
+│   │   ├── oof_predictions.csv              # Out-of-fold predictions
+│   │   ├── oof_predictions_with_httr_ad.csv # Out-of-fold predictions with HTTr AD
+│   │   ├── oof_predictions_with_structural_ad.csv # Out-of-fold predictions with structural AD
+│   │   ├── oof_httr_structural_ad_summary.csv
+│   │   ├── oof_structural_ad_summary.csv
+│   │   ├── feature_importance_summary.csv   # XGBoost feature importances
+│   │   ├── feature_ranking.csv              # Boruta selection frequencies
+│   │   └── shap/                            # SHAP interpretability outputs
 │   │       ├── oof_shap.feather               # Aggregated SHAP values (all test samples)
 │   │       ├── shap_global_rank_oof.csv       # Global feature ranking
 │   │       ├── shap_rank_all_folds.csv        # Feature ranking aggregated across folds
 │   │       ├── shap_summary_by_fold.csv       # Summary statistics per fold
-│   │       ├── shap_TOX21_PR_BLA_Antagonist_ratio.png     # Paper figure
 │   │       └── per_fold/                      # Individual fold SHAP results
 │   │           ├── shap_test_fold_1.feather
 │   │           ├── shap_rank_fold_1.csv
 │   │           └── ...
-│   ├── [40 additional assay directories with identical structure]
-│   ├── figure_01_feature_reduction_waterfall.png           # Paper figure
-│   ├── figure_02_assay_performance_metrics_panel.png       # Paper figure
-│   └── table_01_performance_table_paper.csv                # Paper table
+│   └── [40 additional assay directories with identical structure]
 └── extra/
+    ├── ablation/                            # Ablation study outputs
+    ├── shap_unaugmented_bg/                 # Shaps with unaugmented backgrounds
+    └── overview_machine_learning_framework.png # Overview image
 ```
 
 
