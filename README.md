@@ -1,12 +1,10 @@
-# Mechanistically Interpretable Toxicity Prediction Through Multimodal Integration of Structure and Transcriptomics
-
-Supporting Information
-
-<br>
+# Integrating Chemical Structure and High-Throughput Transcriptomics for Mechanistically Interpretable Tox21 Bioactivity Prediction
 
 ![Workflow Overview](extra/overview_machine_learning_framework.png)
 
 <br>
+
+Supporting Information for DOI
 
 ## Overview
 
