@@ -55,6 +55,7 @@ All analyses are included in the `analyses/` directory, with scripts and noteboo
 │   │   ├── oof_structural_ad_summary.csv           # Summary of AD coverage for structural features
 │   │   ├── feature_importance_summary.csv          # XGBoost feature importances
 │   │   ├── feature_ranking.csv                     # Boruta selection frequencies
+│   │   │
 │   │   └── shap/                                   # SHAP interpretability outputs
 │   │       ├── oof_shap.feather                    # Aggregated SHAP values (all test samples)
 │   │       ├── shap_global_rank_oof.csv            # Global feature ranking
