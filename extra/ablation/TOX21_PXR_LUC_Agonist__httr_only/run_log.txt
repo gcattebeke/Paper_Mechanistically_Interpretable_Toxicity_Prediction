@@ -1,0 +1,17 @@
+
+================================================================================
+Processing assay 29/41: TOX21_PXR_LUC_Agonist
+================================================================================
+
+Target: TOX21_PXR_LUC_Agonist
+Samples: 2,177 | Positives: 701 | Negatives: 1,476
+
+[Fold 1/3] Boruta: 144 | ROC: 0.890 | PR-AUC: 0.850 | AP: 0.850 | F1: 0.790 | CM: [418,43;62,197]
+[Fold 2/3] Boruta: 128 | ROC: 0.925 | PR-AUC: 0.872 | AP: 0.872 | F1: 0.807 | CM: [513,23;52,157]
+[Fold 3/3] Boruta: 133 | ROC: 0.898 | PR-AUC: 0.809 | AP: 0.811 | F1: 0.771 | CM: [417,62;48,185]
+
+OOF Results:
+ROC-AUC: 0.896 | PR-AUC: 0.831 | Accuracy: 0.866 | F1: 0.780
+Confusion Matrix: [[1368, 108], [184, 517]]
+Global Threshold: 0.5363
+

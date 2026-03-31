@@ -118,11 +118,10 @@ SELECT
 FROM consensus;
 """
 
+# The function below queries the database for each assay endpoint (aeid) 
+# and applies consensus hit-calling logic to resolve replicate measurements.
+
 def extract_database():
-    """    
-    Queries the database for each assay endpoint (aeid) and applies
-    consensus hit-calling logic to resolve replicate measurements.
-    """
     TEMP_00_DIR.mkdir(parents=True, exist_ok=True)
 
     aeids = pd.read_csv(AEIDS_CSV, header=0)
@@ -162,9 +161,6 @@ def extract_database():
 
 
 def filter_non_analytical_files():
-    """    
-    Removes files that are not suitable for endpoint analysis:
-    """
     all_files = [f for f in os.listdir(TEMP_00_DIR) if f.endswith('.csv')]
     
     excluded = [
@@ -184,9 +180,6 @@ def filter_non_analytical_files():
 
 
 def apply_viability_filter():
-    """
-    Filter out compounds flagged as toxic in viability assays.
-    """
     viability_files = [f for f in os.listdir(TEMP_01_DIR) if 'viability' in f.lower()]
     all_files = [f for f in os.listdir(TEMP_01_DIR) if f.endswith('.csv')]
     
@@ -245,9 +238,6 @@ def apply_viability_filter():
 
 
 def filter_low_count_files():
-    """
-    Filter out assays with insufficient class balance:
-    """
     all_files = [f for f in os.listdir(TEMP_02_DIR) if f.endswith('.csv')]
     
     TEMP_03_DIR.mkdir(parents=True, exist_ok=True)
@@ -272,10 +262,6 @@ def filter_low_count_files():
 
 
 def merge_all_assays():
-    """
-    Merge all filtered assay files into a single CSV with dtxsid as rows
-    and assay names as columns, with hitc values as cell values.
-    """
     all_files = [f for f in os.listdir(TEMP_03_DIR) if f.endswith('.csv')]
     
     if not all_files:

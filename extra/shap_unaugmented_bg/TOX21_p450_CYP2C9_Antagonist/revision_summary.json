@@ -1,0 +1,16 @@
+{
+  "target_assay": "TOX21_p450_CYP2C9_Antagonist",
+  "ablation_mode": "baseline",
+  "cell_type_filter": null,
+  "selection_filter": "cv_pr_auc_mean > 0.75",
+  "source_cv_pr_auc_mean": 0.9078285022052381,
+  "source_run_dir": "../output/TOX21_p450_CYP2C9_Antagonist",
+  "revision_run_dir": "../output_revision/TOX21_p450_CYP2C9_Antagonist",
+  "n_splits": 3,
+  "random_state": 21,
+  "shap_background": "unaugmented_train_fold",
+  "shap_background_max_rows": 10000,
+  "xgb_n_jobs": 4,
+  "successful_folds": 3,
+  "overwrite": false
+}

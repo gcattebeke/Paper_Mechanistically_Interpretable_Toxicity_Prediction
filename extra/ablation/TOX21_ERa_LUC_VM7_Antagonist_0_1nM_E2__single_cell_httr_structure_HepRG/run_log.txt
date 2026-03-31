@@ -1,0 +1,17 @@
+
+================================================================================
+Processing assay 18/41: TOX21_ERa_LUC_VM7_Antagonist_0_1nM_E2
+================================================================================
+
+Target: TOX21_ERa_LUC_VM7_Antagonist_0_1nM_E2
+Samples: 767 | Positives: 81 | Negatives: 686
+
+[Fold 1/3] Boruta:  23 | ROC: 0.929 | PR-AUC: 0.780 | AP: 0.783 | F1: 0.708 | CM: [214,9;10,23]
+[Fold 2/3] Boruta:  32 | ROC: 0.889 | PR-AUC: 0.641 | AP: 0.653 | F1: 0.683 | CM: [229,2;11,14]
+[Fold 3/3] Boruta:  30 | ROC: 0.924 | PR-AUC: 0.709 | AP: 0.714 | F1: 0.667 | CM: [221,11;6,17]
+
+OOF Results:
+ROC-AUC: 0.915 | PR-AUC: 0.711 | Accuracy: 0.932 | F1: 0.667
+Confusion Matrix: [[663, 23], [29, 52]]
+Global Threshold: 0.3853
+

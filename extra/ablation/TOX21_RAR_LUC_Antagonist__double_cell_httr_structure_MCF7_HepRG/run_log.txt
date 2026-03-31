@@ -1,0 +1,17 @@
+
+================================================================================
+Processing assay 30/41: TOX21_RAR_LUC_Antagonist
+================================================================================
+
+Target: TOX21_RAR_LUC_Antagonist
+Samples: 1,606 | Positives: 167 | Negatives: 1,439
+
+[Fold 1/3] Boruta:  71 | ROC: 0.908 | PR-AUC: 0.595 | AP: 0.598 | F1: 0.585 | CM: [443,43;18,43]
+[Fold 2/3] Boruta:  61 | ROC: 0.915 | PR-AUC: 0.572 | AP: 0.577 | F1: 0.652 | CM: [440,33;13,43]
+[Fold 3/3] Boruta:  50 | ROC: 0.910 | PR-AUC: 0.568 | AP: 0.573 | F1: 0.587 | CM: [453,27;18,32]
+
+OOF Results:
+ROC-AUC: 0.902 | PR-AUC: 0.569 | Accuracy: 0.897 | F1: 0.591
+Confusion Matrix: [[1320, 119], [47, 120]]
+Global Threshold: 0.1316
+

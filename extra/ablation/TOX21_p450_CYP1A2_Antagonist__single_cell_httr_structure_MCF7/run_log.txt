@@ -1,0 +1,17 @@
+
+================================================================================
+Processing assay 37/41: TOX21_p450_CYP1A2_Antagonist
+================================================================================
+
+Target: TOX21_p450_CYP1A2_Antagonist
+Samples: 1,000 | Positives: 614 | Negatives: 386
+
+[Fold 1/3] Boruta:  47 | ROC: 0.795 | PR-AUC: 0.870 | AP: 0.871 | F1: 0.798 | CM: [69,55;33,174]
+[Fold 2/3] Boruta:  39 | ROC: 0.836 | PR-AUC: 0.891 | AP: 0.891 | F1: 0.826 | CM: [99,33;38,168]
+[Fold 3/3] Boruta:  42 | ROC: 0.805 | PR-AUC: 0.874 | AP: 0.874 | F1: 0.808 | CM: [77,53;29,172]
+
+OOF Results:
+ROC-AUC: 0.811 | PR-AUC: 0.877 | Accuracy: 0.743 | F1: 0.801
+Confusion Matrix: [[225, 161], [96, 518]]
+Global Threshold: 0.3515
+

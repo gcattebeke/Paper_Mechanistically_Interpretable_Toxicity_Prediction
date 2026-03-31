@@ -1,0 +1,17 @@
+
+================================================================================
+Processing assay 34/41: TOX21_TR_LUC_GH3_Antagonist
+================================================================================
+
+Target: TOX21_TR_LUC_GH3_Antagonist
+Samples: 1,154 | Positives: 184 | Negatives: 970
+
+[Fold 1/3] Boruta:  30 | ROC: 0.874 | PR-AUC: 0.648 | AP: 0.651 | F1: 0.638 | CM: [289,29;21,44]
+[Fold 2/3] Boruta:  57 | ROC: 0.806 | PR-AUC: 0.446 | AP: 0.452 | F1: 0.507 | CM: [290,43;23,34]
+[Fold 3/3] Boruta:  56 | ROC: 0.826 | PR-AUC: 0.564 | AP: 0.569 | F1: 0.576 | CM: [292,27;26,36]
+
+OOF Results:
+ROC-AUC: 0.827 | PR-AUC: 0.536 | Accuracy: 0.838 | F1: 0.570
+Confusion Matrix: [[843, 127], [60, 124]]
+Global Threshold: 0.1986
+

@@ -1,0 +1,17 @@
+
+================================================================================
+Processing assay 39/41: TOX21_p450_CYP2C9_Antagonist
+================================================================================
+
+Target: TOX21_p450_CYP2C9_Antagonist
+Samples: 2,173 | Positives: 1,155 | Negatives: 1,018
+
+[Fold 1/3] Boruta:  81 | ROC: 0.919 | PR-AUC: 0.926 | AP: 0.926 | F1: 0.854 | CM: [271,86;30,338]
+[Fold 2/3] Boruta: 108 | ROC: 0.868 | PR-AUC: 0.885 | AP: 0.886 | F1: 0.827 | CM: [265,67;66,317]
+[Fold 3/3] Boruta: 106 | ROC: 0.889 | PR-AUC: 0.912 | AP: 0.912 | F1: 0.837 | CM: [256,73;61,343]
+
+OOF Results:
+ROC-AUC: 0.890 | PR-AUC: 0.903 | Accuracy: 0.823 | F1: 0.836
+Confusion Matrix: [[808, 210], [174, 981]]
+Global Threshold: 0.3314
+

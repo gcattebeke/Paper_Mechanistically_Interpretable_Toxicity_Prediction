@@ -1,0 +1,17 @@
+
+================================================================================
+Processing assay 6/41: TOX21_AR_LUC_MDAKB2_Antagonist_0_5nM_R1881
+================================================================================
+
+Target: TOX21_AR_LUC_MDAKB2_Antagonist_0_5nM_R1881
+Samples: 1,069 | Positives: 265 | Negatives: 804
+
+[Fold 1/3] Boruta: 108 | ROC: 0.938 | PR-AUC: 0.845 | AP: 0.846 | F1: 0.806 | CM: [245,19;17,75]
+[Fold 2/3] Boruta: 114 | ROC: 0.935 | PR-AUC: 0.805 | AP: 0.808 | F1: 0.809 | CM: [252,22;12,72]
+[Fold 3/3] Boruta: 139 | ROC: 0.922 | PR-AUC: 0.790 | AP: 0.792 | F1: 0.749 | CM: [223,43;10,79]
+
+OOF Results:
+ROC-AUC: 0.917 | PR-AUC: 0.797 | Accuracy: 0.884 | F1: 0.773
+Confusion Matrix: [[734, 70], [54, 211]]
+Global Threshold: 0.3948
+

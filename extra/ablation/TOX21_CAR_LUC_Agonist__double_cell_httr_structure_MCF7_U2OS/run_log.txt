@@ -1,0 +1,17 @@
+
+================================================================================
+Processing assay 10/41: TOX21_CAR_LUC_Agonist
+================================================================================
+
+Target: TOX21_CAR_LUC_Agonist
+Samples: 2,065 | Positives: 165 | Negatives: 1,900
+
+[Fold 1/3] Boruta:  53 | ROC: 0.934 | PR-AUC: 0.583 | AP: 0.588 | F1: 0.640 | CM: [616,24;21,40]
+[Fold 2/3] Boruta:  43 | ROC: 0.927 | PR-AUC: 0.493 | AP: 0.500 | F1: 0.558 | CM: [626,27;19,29]
+[Fold 3/3] Boruta:  59 | ROC: 0.921 | PR-AUC: 0.597 | AP: 0.609 | F1: 0.690 | CM: [589,18;17,39]
+
+OOF Results:
+ROC-AUC: 0.925 | PR-AUC: 0.551 | Accuracy: 0.934 | F1: 0.618
+Confusion Matrix: [[1819, 81], [55, 110]]
+Global Threshold: 0.2718
+

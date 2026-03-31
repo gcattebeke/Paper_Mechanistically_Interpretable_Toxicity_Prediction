@@ -1,0 +1,17 @@
+
+================================================================================
+Processing assay 40/41: TOX21_p450_CYP2D6_Antagonist
+================================================================================
+
+Target: TOX21_p450_CYP2D6_Antagonist
+Samples: 745 | Positives: 264 | Negatives: 481
+
+[Fold 1/3] Boruta:  31 | ROC: 0.789 | PR-AUC: 0.650 | AP: 0.653 | F1: 0.651 | CM: [130,40;19,55]
+[Fold 2/3] Boruta:  25 | ROC: 0.770 | PR-AUC: 0.637 | AP: 0.645 | F1: 0.680 | CM: [124,33;29,66]
+[Fold 3/3] Boruta:  14 | ROC: 0.859 | PR-AUC: 0.815 | AP: 0.816 | F1: 0.736 | CM: [103,51;10,85]
+
+OOF Results:
+ROC-AUC: 0.797 | PR-AUC: 0.676 | Accuracy: 0.760 | F1: 0.684
+Confusion Matrix: [[372, 109], [70, 194]]
+Global Threshold: 0.3799
+

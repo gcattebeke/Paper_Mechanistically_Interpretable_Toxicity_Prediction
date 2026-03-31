@@ -1,0 +1,17 @@
+
+================================================================================
+Processing assay 25/41: TOX21_MMP_ratio
+================================================================================
+
+Target: TOX21_MMP_ratio
+Samples: 960 | Positives: 147 | Negatives: 813
+
+[Fold 1/3] Boruta:  49 | ROC: 0.910 | PR-AUC: 0.714 | AP: 0.717 | F1: 0.695 | CM: [255,15;14,33]
+[Fold 2/3] Boruta:  36 | ROC: 0.902 | PR-AUC: 0.739 | AP: 0.741 | F1: 0.681 | CM: [257,11;19,32]
+[Fold 3/3] Boruta:  35 | ROC: 0.896 | PR-AUC: 0.660 | AP: 0.664 | F1: 0.615 | CM: [252,23;17,32]
+
+OOF Results:
+ROC-AUC: 0.897 | PR-AUC: 0.694 | Accuracy: 0.880 | F1: 0.646
+Confusion Matrix: [[740, 73], [42, 105]]
+Global Threshold: 0.2856
+

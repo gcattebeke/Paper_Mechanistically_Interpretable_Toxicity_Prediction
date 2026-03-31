@@ -1,0 +1,17 @@
+
+================================================================================
+Processing assay 24/41: TOX21_HDAC_LUC_Antagonist
+================================================================================
+
+Target: TOX21_HDAC_LUC_Antagonist
+Samples: 2,013 | Positives: 72 | Negatives: 1,941
+
+[Fold 1/3] Boruta:   1 | ROC: 0.758 | PR-AUC: 0.133 | AP: 0.140 | F1: 0.174 | CM: [544,106;8,12]
+[Fold 2/3] Boruta: 129 | ROC: 0.789 | PR-AUC: 0.200 | AP: 0.220 | F1: 0.377 | CM: [631,15;18,10]
+[Fold 3/3] Boruta: 129 | ROC: 0.808 | PR-AUC: 0.212 | AP: 0.224 | F1: 0.348 | CM: [631,14;16,8]
+
+OOF Results:
+ROC-AUC: 0.777 | PR-AUC: 0.158 | Accuracy: 0.926 | F1: 0.245
+Confusion Matrix: [[1841, 100], [48, 24]]
+Global Threshold: 0.0437
+

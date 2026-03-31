@@ -1,0 +1,17 @@
+
+================================================================================
+Processing assay 32/41: TOX21_SBE_BLA_Antagonist_ratio
+================================================================================
+
+Target: TOX21_SBE_BLA_Antagonist_ratio
+Samples: 2,815 | Positives: 303 | Negatives: 2,512
+
+[Fold 1/3] Boruta:   0 | ROC: 0.803 | PR-AUC: 0.437 | AP: 0.442 | F1: 0.441 | CM: [783,70;62,52]
+[Fold 2/3] Boruta:   0 | ROC: 0.812 | PR-AUC: 0.307 | AP: 0.316 | F1: 0.452 | CM: [765,74;40,47]
+[Fold 3/3] Boruta:   0 | ROC: 0.832 | PR-AUC: 0.304 | AP: 0.314 | F1: 0.480 | CM: [716,104;37,65]
+
+OOF Results:
+ROC-AUC: 0.798 | PR-AUC: 0.345 | Accuracy: 0.848 | F1: 0.439
+Confusion Matrix: [[2218, 294], [135, 168]]
+Global Threshold: 0.2296
+

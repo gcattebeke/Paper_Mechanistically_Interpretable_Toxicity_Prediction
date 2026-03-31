@@ -1,0 +1,17 @@
+
+================================================================================
+Processing assay 9/41: TOX21_Aromatase_LUC_Antagonist
+================================================================================
+
+Target: TOX21_Aromatase_LUC_Antagonist
+Samples: 2,080 | Positives: 222 | Negatives: 1,858
+
+[Fold 1/3] Boruta:  73 | ROC: 0.860 | PR-AUC: 0.512 | AP: 0.516 | F1: 0.521 | CM: [559,53;15,37]
+[Fold 2/3] Boruta:  41 | ROC: 0.872 | PR-AUC: 0.563 | AP: 0.566 | F1: 0.594 | CM: [547,58;28,63]
+[Fold 3/3] Boruta:  55 | ROC: 0.847 | PR-AUC: 0.479 | AP: 0.483 | F1: 0.555 | CM: [608,33;36,43]
+
+OOF Results:
+ROC-AUC: 0.859 | PR-AUC: 0.502 | Accuracy: 0.890 | F1: 0.545
+Confusion Matrix: [[1714, 144], [85, 137]]
+Global Threshold: 0.4090
+

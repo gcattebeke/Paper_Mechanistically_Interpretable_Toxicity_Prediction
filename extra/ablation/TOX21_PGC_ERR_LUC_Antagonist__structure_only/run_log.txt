@@ -1,0 +1,17 @@
+
+================================================================================
+Processing assay 26/41: TOX21_PGC_ERR_LUC_Antagonist
+================================================================================
+
+Target: TOX21_PGC_ERR_LUC_Antagonist
+Samples: 2,329 | Positives: 324 | Negatives: 2,005
+
+[Fold 1/3] Boruta:   0 | ROC: 0.794 | PR-AUC: 0.313 | AP: 0.323 | F1: 0.430 | CM: [603,105;38,54]
+[Fold 2/3] Boruta:   0 | ROC: 0.754 | PR-AUC: 0.431 | AP: 0.438 | F1: 0.462 | CM: [585,42;65,46]
+[Fold 3/3] Boruta:   0 | ROC: 0.770 | PR-AUC: 0.346 | AP: 0.361 | F1: 0.483 | CM: [546,124;43,78]
+
+OOF Results:
+ROC-AUC: 0.767 | PR-AUC: 0.345 | Accuracy: 0.781 | F1: 0.446
+Confusion Matrix: [[1612, 393], [118, 206]]
+Global Threshold: 0.2005
+

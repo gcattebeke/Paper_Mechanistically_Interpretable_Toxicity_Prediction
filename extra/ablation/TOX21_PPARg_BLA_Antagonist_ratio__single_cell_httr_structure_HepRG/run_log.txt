@@ -1,0 +1,17 @@
+
+================================================================================
+Processing assay 27/41: TOX21_PPARg_BLA_Antagonist_ratio
+================================================================================
+
+Target: TOX21_PPARg_BLA_Antagonist_ratio
+Samples: 727 | Positives: 72 | Negatives: 655
+
+[Fold 1/3] Boruta: 129 | ROC: 0.802 | PR-AUC: 0.299 | AP: 0.315 | F1: 0.359 | CM: [210,12;13,7]
+[Fold 2/3] Boruta: 129 | ROC: 0.836 | PR-AUC: 0.540 | AP: 0.547 | F1: 0.581 | CM: [219,3;10,9]
+[Fold 3/3] Boruta: 129 | ROC: 0.799 | PR-AUC: 0.353 | AP: 0.368 | F1: 0.487 | CM: [185,26;14,19]
+
+OOF Results:
+ROC-AUC: 0.812 | PR-AUC: 0.363 | Accuracy: 0.857 | F1: 0.422
+Confusion Matrix: [[585, 70], [34, 38]]
+Global Threshold: 0.0862
+

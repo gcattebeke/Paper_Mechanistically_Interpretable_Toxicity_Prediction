@@ -1,0 +1,17 @@
+
+================================================================================
+Processing assay 1/41: TOX21_AChE_Colorimetric_Antagonist
+================================================================================
+
+Target: TOX21_AChE_Colorimetric_Antagonist
+Samples: 2,110 | Positives: 87 | Negatives: 2,023
+
+[Fold 1/3] Boruta:   1 | ROC: 0.821 | PR-AUC: 0.491 | AP: 0.495 | F1: 0.522 | CM: [671,11;11,12]
+[Fold 2/3] Boruta:   2 | ROC: 0.861 | PR-AUC: 0.489 | AP: 0.496 | F1: 0.588 | CM: [654,16;12,20]
+[Fold 3/3] Boruta:   1 | ROC: 0.899 | PR-AUC: 0.518 | AP: 0.526 | F1: 0.575 | CM: [651,20;11,21]
+
+OOF Results:
+ROC-AUC: 0.859 | PR-AUC: 0.493 | Accuracy: 0.962 | F1: 0.552
+Confusion Matrix: [[1979, 44], [37, 50]]
+Global Threshold: 0.3896
+

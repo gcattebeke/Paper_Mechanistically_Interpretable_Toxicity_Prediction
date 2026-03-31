@@ -1,0 +1,17 @@
+
+================================================================================
+Processing assay 31/41: TOX21_RORg_LUC_CHO_Antagonist
+================================================================================
+
+Target: TOX21_RORg_LUC_CHO_Antagonist
+Samples: 1,021 | Positives: 113 | Negatives: 908
+
+[Fold 1/3] Boruta:  50 | ROC: 0.951 | PR-AUC: 0.779 | AP: 0.782 | F1: 0.723 | CM: [288,14;9,30]
+[Fold 2/3] Boruta:  73 | ROC: 0.917 | PR-AUC: 0.487 | AP: 0.500 | F1: 0.556 | CM: [274,33;7,25]
+[Fold 3/3] Boruta:  81 | ROC: 0.845 | PR-AUC: 0.616 | AP: 0.620 | F1: 0.605 | CM: [288,11;19,23]
+
+OOF Results:
+ROC-AUC: 0.893 | PR-AUC: 0.638 | Accuracy: 0.895 | F1: 0.614
+Confusion Matrix: [[829, 79], [28, 85]]
+Global Threshold: 0.1916
+

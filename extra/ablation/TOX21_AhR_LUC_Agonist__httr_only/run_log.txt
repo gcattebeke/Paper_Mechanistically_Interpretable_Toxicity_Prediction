@@ -1,0 +1,17 @@
+
+================================================================================
+Processing assay 8/41: TOX21_AhR_LUC_Agonist
+================================================================================
+
+Target: TOX21_AhR_LUC_Agonist
+Samples: 2,833 | Positives: 135 | Negatives: 2,698
+
+[Fold 1/3] Boruta:  10 | ROC: 0.831 | PR-AUC: 0.303 | AP: 0.323 | F1: 0.456 | CM: [921,14;17,13]
+[Fold 2/3] Boruta:   7 | ROC: 0.653 | PR-AUC: 0.237 | AP: 0.240 | F1: 0.240 | CM: [856,6;51,9]
+[Fold 3/3] Boruta:  16 | ROC: 0.745 | PR-AUC: 0.222 | AP: 0.229 | F1: 0.290 | CM: [887,14;35,10]
+
+OOF Results:
+ROC-AUC: 0.694 | PR-AUC: 0.226 | Accuracy: 0.950 | F1: 0.309
+Confusion Matrix: [[2658, 40], [103, 32]]
+Global Threshold: 0.8386
+

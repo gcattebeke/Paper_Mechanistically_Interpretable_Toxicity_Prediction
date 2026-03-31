@@ -1,0 +1,17 @@
+
+================================================================================
+Processing assay 36/41: TOX21_hERG_U2OS_Antagonist
+================================================================================
+
+Target: TOX21_hERG_U2OS_Antagonist
+Samples: 1,713 | Positives: 141 | Negatives: 1,572
+
+[Fold 1/3] Boruta:  40 | ROC: 0.921 | PR-AUC: 0.595 | AP: 0.602 | F1: 0.636 | CM: [519,9;15,21]
+[Fold 2/3] Boruta:  22 | ROC: 0.942 | PR-AUC: 0.667 | AP: 0.670 | F1: 0.619 | CM: [509,21;16,30]
+[Fold 3/3] Boruta:  15 | ROC: 0.931 | PR-AUC: 0.672 | AP: 0.675 | F1: 0.657 | CM: [483,31;15,44]
+
+OOF Results:
+ROC-AUC: 0.919 | PR-AUC: 0.621 | Accuracy: 0.928 | F1: 0.589
+Confusion Matrix: [[1500, 72], [52, 89]]
+Global Threshold: 0.2312
+

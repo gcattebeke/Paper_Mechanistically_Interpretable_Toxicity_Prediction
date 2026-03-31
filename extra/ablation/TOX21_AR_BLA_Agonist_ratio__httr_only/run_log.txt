@@ -1,0 +1,17 @@
+
+================================================================================
+Processing assay 4/41: TOX21_AR_BLA_Agonist_ratio
+================================================================================
+
+Target: TOX21_AR_BLA_Agonist_ratio
+Samples: 2,450 | Positives: 85 | Negatives: 2,365
+
+[Fold 1/3] Boruta:  14 | ROC: 0.797 | PR-AUC: 0.217 | AP: 0.225 | F1: 0.294 | CM: [736,62;10,15]
+[Fold 2/3] Boruta:  10 | ROC: 0.726 | PR-AUC: 0.212 | AP: 0.229 | F1: 0.317 | CM: [760,24;19,10]
+[Fold 3/3] Boruta:  17 | ROC: 0.711 | PR-AUC: 0.297 | AP: 0.301 | F1: 0.383 | CM: [776,7;22,9]
+
+OOF Results:
+ROC-AUC: 0.747 | PR-AUC: 0.229 | Accuracy: 0.963 | F1: 0.286
+Confusion Matrix: [[2342, 23], [67, 18]]
+Global Threshold: 0.8696
+

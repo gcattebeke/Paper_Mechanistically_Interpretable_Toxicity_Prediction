@@ -1,4 +1,5 @@
 #!/home/gcattebeke/miniconda3/envs/ML_env/bin/python
+
 # ------------------------------ imports -------------------------------------- #
 import numpy as np                                          # v1.26.4
 import pandas as pd                                         # v2.2.2
@@ -16,7 +17,9 @@ import xgboost as xgb                                       # v2.1.1
 from pathlib import Path                                    # Python v3.10.13 
 import json                                                 # Python v3.10.13                                                    
 import re                                                   # Python v3.10.13
-from imblearn.over_sampling import SMOTENC                  # 0.13.0 
+from imblearn.over_sampling import SMOTENC                  # 0.13.0
+from imblearn.over_sampling import SMOTE                    # 0.13.0
+from imblearn.over_sampling import SMOTEN                   # 0.13.0
 from sklearn.model_selection import RandomizedSearchCV      # v1.5.2
 import shap                                                 # v0.42.2         
 from imblearn.pipeline import Pipeline as ImbPipeline       # 0.13.0
@@ -25,9 +28,6 @@ import os                                                   # Python v3.10.13
 import sys                                                  # Python v3.10.13
 
 # ------------------------------ config --------------------------------------- #
-OUT_BASE = Path("../output")
-OUT_BASE.mkdir(parents=True, exist_ok=True)
-
 # Configuration
 N_SPLITS = 3
 RANDOM_STATE = 21
@@ -35,21 +35,59 @@ N_JOBS = 40
 STABILITY_RUNS = 5
 STABILITY_MIN_FRAC = 0.6
 
+# ------------------------------ ablation settings ---------------------------- #
+
+# options: "baseline", "structure_only", "httr_only", "single_cell_httr_structure", "double_cell_httr_structure"
+ABLATION_MODE = "baseline"
+
+# options: "MCF7", "U2OS", "HepRG"
+SINGLE_CELL_TYPE = "U2OS" 
+DOUBLE_CELL_TYPE_1 = "U2OS"  # options: "MCF7", "U2OS", "HepRG"
+DOUBLE_CELL_TYPE_2 = "HepRG"  # options: "MCF7", "U2OS", "HepRG"
+
+VALID_ABLATION_MODES = {
+    "baseline",
+    "structure_only",
+    "httr_only",
+    "single_cell_httr_structure",
+    "double_cell_httr_structure"
+}
+if ABLATION_MODE not in VALID_ABLATION_MODES:
+    raise ValueError(f"Unsupported ABLATION_MODE '{ABLATION_MODE}'. Allowed: {sorted(VALID_ABLATION_MODES)}")
+
+if ABLATION_MODE == "baseline":
+    OUT_BASE = Path("../output")
+else:
+    OUT_BASE = Path("../extra/ablation")
+OUT_BASE.mkdir(parents=True, exist_ok=True)
+
 # ------------------------------ Get all assays ------------------------------- #
 chemical_httr_assay_aggregated = pd.read_feather("../data/chemical_httr_assay_aggregated.feather")
 assay_cols = [col for col in chemical_httr_assay_aggregated.columns if col.startswith('TOX21_')]
 
 print(f"\nFound {len(assay_cols)} assays to process\n")
+print(f"Ablation mode: {ABLATION_MODE}")
+if ABLATION_MODE == "single_cell_httr_structure":
+    print(f"Cell type filter: {SINGLE_CELL_TYPE}")
+elif ABLATION_MODE == "double_cell_httr_structure":
+    print(f"Cell type filters: {DOUBLE_CELL_TYPE_1}, {DOUBLE_CELL_TYPE_2}")
 
 # ------------------------------ Loop over all assays ------------------------- #
 for assay_idx, selected_assay in enumerate(assay_cols, 1):
-    # Setup output directory
     ASSAY_SAFE = re.sub(r"[^A-Za-z0-9_.-]+", "_", selected_assay)
-    RUN_DIR = OUT_BASE / ASSAY_SAFE
+    run_tag = ASSAY_SAFE
+    if ABLATION_MODE != "baseline":
+        if ABLATION_MODE == "single_cell_httr_structure":
+            run_tag = f"{ASSAY_SAFE}__{ABLATION_MODE}_{SINGLE_CELL_TYPE}"
+        elif ABLATION_MODE == "double_cell_httr_structure":
+            run_tag = f"{ASSAY_SAFE}__{ABLATION_MODE}_{DOUBLE_CELL_TYPE_1}_{DOUBLE_CELL_TYPE_2}"
+        else:
+            run_tag = f"{ASSAY_SAFE}__{ABLATION_MODE}"
+    RUN_DIR = OUT_BASE / run_tag
     
     # Check if assay has already been processed
     if (RUN_DIR / 'run_summary.json').exists():
-        print(f"⏭️  Assay {selected_assay} already processed. Skipping...\n")
+        print(f"--> Assay {selected_assay} already processed. Skipping...\n")
         continue
     
     RUN_DIR.mkdir(parents=True, exist_ok=True)
@@ -58,10 +96,8 @@ for assay_idx, selected_assay in enumerate(assay_cols, 1):
     log_file = RUN_DIR / 'run_log.txt'
     log = open(log_file, 'w')
     
-    # Print to console (minimal)
     print(f"[{assay_idx}/{len(assay_cols)}] Processing {selected_assay}...", flush=True)
-    
-    # Print to log file (detailed)
+
     print(f"\n{'='*80}", file=log)
     print(f"Processing assay {assay_idx}/{len(assay_cols)}: {selected_assay}", file=log)
     print(f"{'='*80}\n", file=log)
@@ -74,15 +110,40 @@ for assay_idx, selected_assay in enumerate(assay_cols, 1):
     shap_data_per_fold = []
     
     # ------------------------------ data ----------------------------------------- #
-    httr_cols     = [col for col in chemical_httr_assay_aggregated.columns if col.endswith(('_max', '_dose_at_max', '_AUC_neg'))]
-    chemical_cols = [col for col in chemical_httr_assay_aggregated.columns if col.startswith('MACCS_')]
+    httr_cols_all     = [col for col in chemical_httr_assay_aggregated.columns if col.endswith(('_max', '_dose_at_max', '_AUC_neg'))]
+    chemical_cols_all = [col for col in chemical_httr_assay_aggregated.columns if col.startswith('MACCS_')]
+    httr_cols = httr_cols_all
+    chemical_cols = chemical_cols_all
+
+    if ABLATION_MODE == "structure_only":
+        httr_cols = []
+    elif ABLATION_MODE == "httr_only":
+        chemical_cols = []
     
     df_full = chemical_httr_assay_aggregated.copy()
+    if ABLATION_MODE == "single_cell_httr_structure":
+        if 'cell_type' not in df_full.columns:
+            print(f"[{selected_assay}] Missing cell_type column, skipping.", file=log)
+            log.close()
+            continue
+        df_full = df_full[df_full['cell_type'] == SINGLE_CELL_TYPE].copy()
+    elif ABLATION_MODE == "double_cell_httr_structure":
+        if 'cell_type' not in df_full.columns:
+            print(f"[{selected_assay}] Missing cell_type column, skipping.", file=log)
+            log.close()
+            continue
+        df_full = df_full[df_full['cell_type'].isin([DOUBLE_CELL_TYPE_1, DOUBLE_CELL_TYPE_2])].copy()
+
     if 'cell_type' in df_full.columns:
         df_full = df_full.drop(columns=['cell_type'])
     
     # Filter to samples with target assay data
     df_filtered = df_full.dropna(subset=[selected_assay]).copy()
+
+    if df_filtered.empty:
+        print(f"[{selected_assay}] No samples after ablation filtering, skipping.", file=log)
+        log.close()
+        continue
     
     # Keep only the selected assay and drop other assays
     cols_to_drop = [c for c in df_filtered.columns if c.startswith("TOX21_") and c != selected_assay]
@@ -94,6 +155,11 @@ for assay_idx, selected_assay in enumerate(assay_cols, 1):
     
     y_raw = df_filtered[selected_assay].astype(int).values
     groups = df_filtered['outcome_id'].astype(str).values
+
+    if len(np.unique(y_raw)) < 2:
+        print(f"[{selected_assay}] Only one target class after filtering, skipping.", file=log)
+        log.close()
+        continue
     
     pos = int((y_raw == 1).sum())
     neg = int((y_raw == 0).sum())
@@ -107,8 +173,12 @@ for assay_idx, selected_assay in enumerate(assay_cols, 1):
         'n_chemical_features':  len(chemical_cols),
         'target_positives':     pos,
         'target_negatives':     neg,
-        'target_balance_ratio': min(pos, neg) / max(pos, neg),
-        'unique_chemicals':     df_filtered['outcome_id'].nunique() if 'outcome_id' in df_filtered.columns else None
+        'target_balance_ratio': min(pos, neg) / max(pos, neg) if max(pos, neg) > 0 else None,
+        'unique_chemicals':     df_filtered['outcome_id'].nunique() if 'outcome_id' in df_filtered.columns else None,
+        'ablation_mode':        ABLATION_MODE,
+        'cell_type_filter':     SINGLE_CELL_TYPE if ABLATION_MODE == "single_cell_httr_structure" else None,
+        'cell_type_filter_1':   DOUBLE_CELL_TYPE_1 if ABLATION_MODE == "double_cell_httr_structure" else None,
+        'cell_type_filter_2':   DOUBLE_CELL_TYPE_2 if ABLATION_MODE == "double_cell_httr_structure" else None
     }
     
     # ------------------------------ CV setup ------------------------------------- #
@@ -148,65 +218,76 @@ for assay_idx, selected_assay in enumerate(assay_cols, 1):
         
         # ----------------------- Boruta feature selection (HTTr only) ------------ #
         httr_cols_train = [col for col in X_train_df.columns if col.endswith(('_max', '_dose_at_max', '_AUC_neg'))]
+        httr_cols_train = [c for c in httr_cols_train if c in httr_cols]
         
-        rf_for_boruta = RandomForestClassifier(
-            n_jobs=N_JOBS,
-            n_estimators=1000,
-            class_weight="balanced",
-            random_state=RANDOM_STATE
-        )
-        
-        # Stability-based feature selection over multiple random undersamples
-        hits_counter = Counter()
-        valid_runs   = 0
-        pos_idx_all  = np.where(y_train == 1)[0]
-        neg_idx_all  = np.where(y_train == 0)[0]
-
-        for r in range(STABILITY_RUNS):
-            if len(neg_idx_all) > len(pos_idx_all) and len(pos_idx_all) > 0:
-                rs = np.random.RandomState(RANDOM_STATE + r)
-                neg_sel = rs.choice(neg_idx_all, size=len(pos_idx_all), replace=False)
-                sel_idx = np.concatenate([pos_idx_all, neg_sel])
-            else:
-                sel_idx = np.arange(len(y_train))
-            
-            X_train_httr_boruta = X_train_df.iloc[sel_idx][httr_cols_train].values
-            y_train_boruta      = y_train[sel_idx]
-            
-            boruta = BorutaPy(
-                estimator=rf_for_boruta,
-                n_estimators='auto',
-                perc=100,
-                verbose=0,
-                random_state=RANDOM_STATE + r
+        if httr_cols_train:
+            rf_for_boruta = RandomForestClassifier(
+                n_jobs=N_JOBS,
+                n_estimators=1000,
+                class_weight="balanced",
+                random_state=RANDOM_STATE
             )
+        
+        if httr_cols_train:
+            # stability-based feature selection over multiple random undersamples
+            hits_counter = Counter()
+            valid_runs   = 0
+            pos_idx_all  = np.where(y_train == 1)[0]
+            neg_idx_all  = np.where(y_train == 0)[0]
+
+            for r in range(STABILITY_RUNS):
+                if len(neg_idx_all) > len(pos_idx_all) and len(pos_idx_all) > 0:
+                    rs = np.random.RandomState(RANDOM_STATE + r)
+                    neg_sel = rs.choice(neg_idx_all, size=len(pos_idx_all), replace=False)
+                    sel_idx = np.concatenate([pos_idx_all, neg_sel])
+                else:
+                    sel_idx = np.arange(len(y_train))
+                
+                X_train_httr_boruta = X_train_df.iloc[sel_idx][httr_cols_train].values
+                y_train_boruta      = y_train[sel_idx]
+                
+                boruta = BorutaPy(
+                    estimator=rf_for_boruta,
+                    n_estimators='auto',
+                    perc=100,
+                    verbose=0,
+                    random_state=RANDOM_STATE + r
+                )
+                
+                try:
+                    boruta.fit(X_train_httr_boruta, y_train_boruta)
+                    for f, keep in zip(httr_cols_train, boruta.support_):
+                        if keep:
+                            hits_counter[f] += 1
+                    valid_runs += 1
+                except Exception:
+                    continue
             
-            try:
-                boruta.fit(X_train_httr_boruta, y_train_boruta)
-                for f, keep in zip(httr_cols_train, boruta.support_):
-                    if keep:
-                        hits_counter[f] += 1
-                valid_runs += 1
-            except Exception:
-                continue
-        
-        # Keep features selected in >= STABILITY_MIN_FRAC of valid runs
-        threshold_hits = int(np.ceil(STABILITY_MIN_FRAC * max(valid_runs, 1)))
-        selected_httr_features = [f for f, h in hits_counter.items() if h >= threshold_hits]
-        
-        # Fallback if stability keeps nothing
-        if len(selected_httr_features) == 0:
-            rf_for_boruta.fit(X_train_df[httr_cols_train].values, y_train)
-            importances = rf_for_boruta.feature_importances_
-            order = np.argsort(importances)[::-1]
-            top_k = max(25, min(200, int(np.sqrt(len(httr_cols_train)))))
-            selected_httr_features = [httr_cols_train[i] for i in order[:top_k]]
+            # Keep features selected in >= STABILITY_MIN_FRAC of valid runs
+            threshold_hits = int(np.ceil(STABILITY_MIN_FRAC * max(valid_runs, 1)))
+            selected_httr_features = [f for f, h in hits_counter.items() if h >= threshold_hits]
+            
+            # Fallback if stability keeps nothing
+            if len(selected_httr_features) == 0:
+                rf_for_boruta.fit(X_train_df[httr_cols_train].values, y_train)
+                importances = rf_for_boruta.feature_importances_
+                order = np.argsort(importances)[::-1]
+                top_k = max(25, min(200, int(np.sqrt(len(httr_cols_train)))))
+                selected_httr_features = [httr_cols_train[i] for i in order[:top_k]]
+        else:
+            selected_httr_features = []
         
         feature_hits.update(selected_httr_features)
         fold_selected_features.append(selected_httr_features)
         
         # ----------------------- Prepare pipeline with SMOTE + XGB -------------- #
         feature_cols = chemical_cols + selected_httr_features
+        if not feature_cols:
+            print(f"[Fold {fold}] no features available after ablation filter.", file=log)
+            continue
+
+        # If features are all MACCS (categorical), use SMOTEN instead of SMOTE-NC.
+        all_categorical = len(feature_cols) > 0 and all(c.startswith("MACCS_") for c in feature_cols)
         
         X_train_selected = X_train_df[feature_cols]
         X_test_selected  = X_test_df[feature_cols]
@@ -226,11 +307,25 @@ for assay_idx, selected_assay in enumerate(assay_cols, 1):
         )
         
         # Pipeline with SMOTE + XGB
-        pipeline = ImbPipeline([
-            ('smote', SMOTENC(
+        if all_categorical:
+            sampler = SMOTEN(
+                sampling_strategy='auto',
+                random_state=RANDOM_STATE
+            )
+        elif categorical_idx:
+            sampler = SMOTENC(
                 categorical_features=categorical_idx,
                 sampling_strategy='auto',
-                random_state=RANDOM_STATE)),
+                random_state=RANDOM_STATE
+            )
+        else:
+            sampler = SMOTE(
+                sampling_strategy='auto',
+                random_state=RANDOM_STATE
+            )
+
+        pipeline = ImbPipeline([
+            ('smote', sampler),
             ('classifier', base_model)
         ])
         
